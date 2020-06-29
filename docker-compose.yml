@@ -1,0 +1,19 @@
+version: "3.8"
+services:
+    command_center:
+        container_name: command_center
+        build:
+            context: .
+            dockerfile: Dockerfiles/CommandCenter.Dockerfile
+    
+    discord_handler:
+        container_name: discord_handler
+        build:
+            context: .
+            dockerfile: Dockerfiles/DiscordHandler.Dockerfile
+
+    twitch_handler:
+        container_name: twitch_handler
+        build:
+            context: .
+            dockerfile: Dockerfiles/TwitchHandler.Dockerfile
