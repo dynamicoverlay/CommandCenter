@@ -1,7 +1,7 @@
 version: "3.8"
 services:
     command_center:
-        container_name: cc_command_center
+        container_name: cc_command_center_dev
         networks:
             - command_center:
                 aliases: 
@@ -11,7 +11,7 @@ services:
             dockerfile: CommandCenter/CommandCenter.Dockerfile
     
     discord_handler:
-        container_name: cc_discord_handler
+        container_name: cc_discord_handler_dev
         networks:
             - command_center:
                 aliases: 
@@ -21,7 +21,7 @@ services:
             dockerfile: DiscordHandler/DiscordHandler.Dockerfile
 
     twitch_handler:
-        container_name: cc_twitch_handler
+        container_name: cc_twitch_handler_dev
         networks:
             - command_center:
                 aliases: 
@@ -32,4 +32,4 @@ services:
 
 networks:
     command_center:
-        name: "command_center"
+        name: "command_center_dev"
