@@ -1,6 +1,8 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using CommandCenter.Data;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
@@ -9,14 +11,20 @@ namespace CommandCenter
     public class CommandCenter : BackgroundService
     {
         private readonly ILogger<CommandCenter> _logger;
+        private readonly AppDbContext _context;
 
-        public CommandCenter(ILogger<CommandCenter> logger)
+        public CommandCenter(ILogger<CommandCenter> logger, AppDbContext context)
         {
             _logger = logger;
+            _context = context;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            _logger.LogInformation("Starting migration");
+            await _context.Database.MigrateAsync(cancellationToken: stoppingToken);
+            _logger.LogInformation("Finished migration");
+            
             while (!stoppingToken.IsCancellationRequested)
             {
                 _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
