@@ -2,8 +2,9 @@ version: "3.8"
 services:
     command_center:
         container_name: cc_command_center
+        restart: always
         networks:
-            - command_center:
+            command_center:
                 aliases: 
                     - command_center
         build:
@@ -12,8 +13,9 @@ services:
     
     discord_handler:
         container_name: cc_discord_handler
+        restart: always
         networks:
-            - command_center:
+            command_center:
                 aliases: 
                     - discord_handler
         build:
@@ -22,13 +24,28 @@ services:
 
     twitch_handler:
         container_name: cc_twitch_handler
+        restart: always
         networks:
-            - command_center:
+            command_center:
                 aliases: 
                     - twitch_handler
         build:
             context: .
             dockerfile: TwitchHandler/TwitchHandler.Dockerfile
+
+    postgres:
+        image: postgres
+        container_name: cc_postgres
+        restart: always
+        networks:
+            command_center:
+                aliases: 
+                    - postgres
+        volumes:
+            - ./ccdata/postgres:/var/lib/postgresql/data
+        environment:
+            POSTGRES_PASSWORD: 1234
+            POSTGRES_DB: commandcenter
 
 networks:
     command_center:

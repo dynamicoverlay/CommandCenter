@@ -1,34 +1,21 @@
 version: "3.8"
 services:
-    command_center:
-        container_name: cc_command_center_dev
-        networks:
-            - command_center:
-                aliases: 
-                    - command_center
-        build:
-            context: .
-            dockerfile: CommandCenter/CommandCenter.Dockerfile
-    
-    discord_handler:
-        container_name: cc_discord_handler_dev
-        networks:
-            - command_center:
-                aliases: 
-                    - discord_handler
-        build:
-            context: .
-            dockerfile: DiscordHandler/DiscordHandler.Dockerfile
 
-    twitch_handler:
-        container_name: cc_twitch_handler_dev
+    postgres:
+        image: postgres
+        container_name: cc_postgres_dev
+        restart: always
+        ports:
+            - "5432:5432"
         networks:
-            - command_center:
+            command_center:
                 aliases: 
-                    - twitch_handler
-        build:
-            context: .
-            dockerfile: TwitchHandler/TwitchHandler.Dockerfile
+                    - postgres
+        volumes:
+            - ./ccdata/postgres:/var/lib/postgresql/data
+        environment:
+            POSTGRES_PASSWORD: 1234
+            POSTGRES_DB: commandcenter
 
 networks:
     command_center:
