@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using CommandCenter.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -18,7 +18,6 @@ namespace CommandCenter
             Host.CreateDefaultBuilder(args)
                 .ConfigureServices((hostContext, services) =>
                 {
-                    var str = hostContext.Configuration.GetConnectionString("DefaultConnection");
                     services.AddDbContext<AppDbContext>(options =>
                         options.UseNpgsql(hostContext.Configuration.GetConnectionString("DefaultConnection")));
                     services.AddHostedService<CommandCenter>();
