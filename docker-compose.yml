@@ -47,6 +47,19 @@ services:
             POSTGRES_PASSWORD: 1234
             POSTGRES_DB: commandcenter
 
+    rabbitmq:
+        image: rabbitmq:3-management
+        container_name: cc_rabbitmq_dev
+        hostname: rabbitmq
+        networks:
+            command_center:
+                aliases: 
+                    - rabbitmq
+        volumes:
+            - ./ccconfig/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+            - ./ccdata/rabbitmq/data:/var/lib/rabbitmq/
+            - ./ccdata/rabbitmq/logs:/var/log/rabbitmq/
+
 networks:
     command_center:
         name: "command_center"

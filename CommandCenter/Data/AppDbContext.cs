@@ -9,17 +9,21 @@ namespace CommandCenter.Data
         { }
         
         public DbSet<Fruit> Fruits { get; set; }
+        public DbSet<TwitchChatMessage> TwitchChatMessages { get; set; }
         
-        protected override void OnModelCreating(ModelBuilder model)
+        protected override void OnModelCreating(ModelBuilder builder)
         {
-            base.OnModelCreating(model);
+            base.OnModelCreating(builder);
             
-            model.HasPostgresExtension("uuid-ossp");
-            model.Entity<Fruit>(eb =>
+            builder.HasPostgresExtension("uuid-ossp");
+            builder.Entity<Fruit>(eb =>
             {
                 eb.Property(fr => fr.Id)
                     .HasDefaultValueSql("uuid_generate_v4()");
             });
+
+            builder.Entity<TwitchChatMessage>()
+                .HasIndex(m => m.UserId);
         }
     }
 }
