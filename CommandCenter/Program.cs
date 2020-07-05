@@ -1,5 +1,4 @@
-﻿using System;
-using AutoMapper;
+﻿using AutoMapper;
 using CommandCenter.Consumers;
 using CommandCenter.Data;
 using MassTransit;
