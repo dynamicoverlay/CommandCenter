@@ -59,6 +59,9 @@ services:
             - ./ccconfig/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
             - ./ccdata/rabbitmq/data:/var/lib/rabbitmq/
             - ./ccdata/rabbitmq/logs:/var/log/rabbitmq/
+        ports:
+            #- 5672:5672
+            - 15672:15672
 
 networks:
     command_center:
