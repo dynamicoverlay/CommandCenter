@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using System;
+using AutoMapper;
 using CommandCenter.Consumers;
 using CommandCenter.Data;
 using MassTransit;
@@ -6,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Serilog;
 
 namespace CommandCenter
 {
@@ -13,11 +15,37 @@ namespace CommandCenter
     {
         public static void Main(string[] args)
         {
-            CreateHostBuilder(args).Build().Run();
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Information()
+                .Enrich.FromLogContext()
+                .Enrich.WithProperty("AppName", "CommandCenter")
+                .WriteTo.Console()
+                .WriteTo.Seq("http://seq:5341")
+                .CreateLogger();
+            
+            try
+            {
+                Log.Information("Starting CommandCenter host");
+                CreateHostBuilder(args).Build().Run();
+                return;
+            }
+            catch (Exception ex)
+            {
+                Log.Fatal(ex, "Host terminated unexpectedly");
+                return;
+            }
+            finally
+            {
+                Log.CloseAndFlush();
+            }
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
+                .ConfigureLogging(builder =>
+                {
+                    builder.AddSerilog();
+                })
                 .ConfigureAppConfiguration((context, config) =>
                 {
                     config.AddEnvironmentVariables(prefix: "CC_");
@@ -53,6 +81,7 @@ namespace CommandCenter
                     services.AddAutoMapper(typeof(Program));
                     
                     services.AddHostedService<CommandCenter>();
-                });
+                })
+                .UseSerilog();
     }
 }

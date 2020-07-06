@@ -33,6 +33,22 @@ services:
             - 5672:5672
             - 15672:15672
 
+    seq:
+        image: datalust/seq:preview
+        restart: unless-stopped
+        container_name: cc_seq_dev
+        networks:
+            command_center:
+                aliases: 
+                    - seq
+        ports:
+            #- "80:80"
+            - "5341:80"
+        volumes:
+            - ./ccdata/seq:/data
+        environment:
+            - ACCEPT_EULA=Y
+
 networks:
     command_center:
         name: "command_center_dev"

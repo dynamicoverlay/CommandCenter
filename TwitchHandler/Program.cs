@@ -1,7 +1,9 @@
-﻿using MassTransit;
+﻿using System;
+using MassTransit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Serilog;
 
 namespace TwitchHandler
 {
@@ -9,7 +11,29 @@ namespace TwitchHandler
     {
         public static void Main(string[] args)
         {
-            CreateHostBuilder(args).Build().Run();
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Information()
+                .Enrich.FromLogContext()
+                .Enrich.WithProperty("AppName", "TwitchHandler")
+                .WriteTo.Console()
+                .WriteTo.Seq("http://seq:5341")
+                .CreateLogger();
+            
+            try
+            {
+                Log.Information("Starting TwitchHandler host");
+                CreateHostBuilder(args).Build().Run();
+                return;
+            }
+            catch (Exception ex)
+            {
+                Log.Fatal(ex, "Host terminated unexpectedly");
+                return;
+            }
+            finally
+            {
+                Log.CloseAndFlush();
+            }
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
@@ -35,6 +59,7 @@ namespace TwitchHandler
                     services.AddMassTransitHostedService();
                     
                     services.AddHostedService<TwitchHandler>();
-                });
+                })
+                .UseSerilog();
     }
 }

@@ -1,6 +1,8 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using System;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Serilog;
 
 namespace DiscordHandler
 {
@@ -8,7 +10,29 @@ namespace DiscordHandler
     {
         public static void Main(string[] args)
         {
-            CreateHostBuilder(args).Build().Run();
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Information()
+                .Enrich.FromLogContext()
+                .Enrich.WithProperty("AppName", "DiscordHandler")
+                .WriteTo.Console()
+                .WriteTo.Seq("http://seq:5341")
+                .CreateLogger();
+            
+            try
+            {
+                Log.Information("Starting DiscordHandler host");
+                CreateHostBuilder(args).Build().Run();
+                return;
+            }
+            catch (Exception ex)
+            {
+                Log.Fatal(ex, "Host terminated unexpectedly");
+                return;
+            }
+            finally
+            {
+                Log.CloseAndFlush();
+            }
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
@@ -20,6 +44,7 @@ namespace DiscordHandler
                 .ConfigureServices((hostContext, services) =>
                 {
                     services.AddHostedService<DiscordHandler>();
-                });
+                })
+                .UseSerilog();
     }
 }
