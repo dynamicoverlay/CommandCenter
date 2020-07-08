@@ -60,6 +60,7 @@ namespace CommandCenter
                     services.AddMassTransit(x =>
                     {
                         x.AddConsumer<TwitchChatConsumer>();
+                        x.AddConsumer<ChannelsToMonitorConsumer>();
 
                         x.UsingRabbitMq((context, cfg) =>
                         {
@@ -72,6 +73,11 @@ namespace CommandCenter
                             cfg.ReceiveEndpoint("twitch_chat_event", e =>
                             {
                                 e.ConfigureConsumer<TwitchChatConsumer>(context);
+                            });
+                            
+                            cfg.ReceiveEndpoint("twitch_channels_request", e =>
+                            {
+                                e.ConfigureConsumer<ChannelsToMonitorConsumer>(context);
                             });
                         });
                     });

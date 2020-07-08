@@ -16,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="TwitchLib.Api" Version="3.1.4-CI-20200626-19" />
     <PackageReference Include="TwitchLib.Client" Version="3.1.5" />
   </ItemGroup>
 

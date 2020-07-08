@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
+using Shared.Events.Twitch.RequestsResponses;
 
 namespace TwitchHandler
 {
@@ -54,6 +55,8 @@ namespace TwitchHandler
                                 h.Password(hostContext.Configuration.GetSection("RabbitMQ")["Password"]);
                             });
                         });
+                        
+                        x.AddRequestClient<RequestChannelsToMonitor>();
                     });
                     
                     services.AddMassTransitHostedService();

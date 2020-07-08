@@ -6,6 +6,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Shared.Events.Twitch;
+using Shared.Events.Twitch.RequestsResponses;
+using TwitchLib.Api;
 using TwitchLib.Client;
 using TwitchLib.Client.Events;
 using TwitchLib.Client.Models;
@@ -19,16 +21,50 @@ namespace TwitchHandler
         private readonly ILogger<TwitchHandler> _logger;
         private readonly IConfiguration _config;
         private readonly IPublishEndpoint _publishEndpoint;
+        private readonly IRequestClient<RequestChannelsToMonitor> _channelsClient;
+        private readonly IBus _bus;
         private TwitchClient client;
 
-        public TwitchHandler(ILogger<TwitchHandler> logger, IConfiguration config, IPublishEndpoint publishEndpoint)
+        public TwitchHandler(ILogger<TwitchHandler> logger, 
+            IConfiguration config, 
+            IPublishEndpoint publishEndpoint, 
+            IRequestClient<RequestChannelsToMonitor> channelsClient)
         {
             _logger = logger;
             _config = config;
             _publishEndpoint = publishEndpoint;
+            _channelsClient = channelsClient;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        {
+            _logger.LogInformation("Starting client setup");
+            SetupTwitchClient();
+            _logger.LogInformation("Finished client setup");
+
+            _logger.LogInformation("Starting client connection");
+            client.Connect();
+            _logger.LogInformation("Finished client connection");
+
+            
+            _logger.LogInformation("Starting monitoring channels request");
+            //Get list of channels for us to monitor
+            var channels = await _channelsClient.GetResponse<ResponseChannelsToMonitor>(new { }, stoppingToken);
+            _logger.LogInformation("Finished monitoring channels request, received {ChannelCount} channels", channels.Message.Channels.Length);
+            foreach (var channel in channels.Message.Channels)
+            {
+                _logger.LogInformation("Connecting to channel {ChannelName}", channel);
+                client.JoinChannel(channel);
+            }
+
+            while (!stoppingToken.IsCancellationRequested)
+            {
+                //_logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
+                await Task.Delay(1000, stoppingToken);
+            }
+        }
+
+        private void SetupTwitchClient()
         {
             var credentials = new ConnectionCredentials(
                 _config.GetSection("Twitch")["Username"], 
@@ -42,20 +78,12 @@ namespace TwitchHandler
             
             var customClient = new WebSocketClient(clientOptions);
             client = new TwitchClient(customClient);
-            client.Initialize(credentials, _config.GetSection("Twitch")["Channel"]);
+            client.Initialize(credentials, _config.GetSection("Twitch")["Username"]);
             
             client.OnMessageReceived += Client_OnMessageReceived;
             
             //client.OnChatCommandReceived += OnChatCommand;
             client.OnJoinedChannel += Client_OnJoinedChannel;
-
-            client.Connect();
-            
-            while (!stoppingToken.IsCancellationRequested)
-            {
-                //_logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
-                await Task.Delay(1000, stoppingToken);
-            }
         }
 
         private void Client_OnJoinedChannel(object? sender, OnJoinedChannelArgs e)
